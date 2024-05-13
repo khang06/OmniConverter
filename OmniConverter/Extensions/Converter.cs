@@ -16,6 +16,8 @@ using System.Drawing;
 using System.Linq;
 using System.Xml.Linq;
 using CSCore.Streams;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
+using System.Diagnostics;
 
 namespace OmniConverter
 {
@@ -83,6 +85,7 @@ namespace OmniConverter
 
     class ConvertWorker
     {
+        public BASSMIDI bass;
         IEnumerable<MIDIEvent> events;
         double length;
         double converted;
@@ -97,8 +100,6 @@ namespace OmniConverter
 
         public void Convert(ISampleWriter output, CSCore.WaveFormat format, CancellationToken CTS)
         {
-            BASSMIDI bass;
-
             Debug.PrintToConsole("ok", $"Initializing BASSMIDI for thread...");
 
             using (bass = new BASSMIDI(format, CTS))
@@ -296,6 +297,8 @@ namespace OmniConverter
                             var ConvThread = Task.Run(() => Worker.Convert(Writer, WF, CTS.Token));
 
                             int ov = 0;
+                            var watch = new Stopwatch();
+                            watch.Start();
                             while (!ConvThread.IsCompleted)
                             {
                                 var v = Convert.ToInt32(Math.Round(Worker.Progress * 100));
@@ -303,11 +306,15 @@ namespace OmniConverter
                                 if (StopRequested)
                                     break;
 
-                                if (ov != v)
+                                if (ov != v || watch.ElapsedMilliseconds == 500)
                                 {
+                                    watch.Restart();
                                     ov = v;
 
-                                    MIDIT.UpdateTitle($"{v}%");
+                                    if (Worker.bass != null)
+                                        MIDIT.UpdateTitle($"{v}% - {Worker.bass.VoicesActive:n0} voices");
+                                    else
+                                        MIDIT.UpdateTitle($"{v}%");
                                     MIDIT.UpdatePB(v);
                                 }
                             }
@@ -454,6 +461,8 @@ namespace OmniConverter
                                     Debug.PrintToConsole("ok", $"ConvThread started for T{T}");
 
                                     int ov = 0;
+                                    var watch = new Stopwatch();
+                                    watch.Start();
                                     while (!ConvThread.IsCompleted)
                                     {
                                         var v = Convert.ToInt32(Math.Round(Worker.Progress * 100));
@@ -461,11 +470,15 @@ namespace OmniConverter
                                         if (StopRequested)
                                             break;
 
-                                        if (ov != v)
+                                        if (ov != v || watch.ElapsedMilliseconds == 500)
                                         {
+                                            watch.Restart();
                                             ov = v;
 
-                                            Trck.UpdateTitle($"{v}%");
+                                            if (Worker.bass != null)
+                                                Trck.UpdateTitle($"{v}% - {Worker.bass.VoicesActive:n0} voices");
+                                            else
+                                                Trck.UpdateTitle($"{v}%");
                                             Trck.UpdatePB(v);
                                         }
                                     }
@@ -647,7 +660,7 @@ namespace OmniConverter
 
             if (disposing)
             {
-                if (CThread != null || CThread.ThreadState == ThreadState.Stopped)
+                if (CThread != null || CThread.ThreadState == System.Threading.ThreadState.Stopped)
                     Dispose();
                 else return;
 

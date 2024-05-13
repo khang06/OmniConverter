@@ -254,6 +254,15 @@ namespace OmniConverter
             get { return Bass.ChannelGetLength(Handle) / 4; }
         }
 
+        public int VoicesActive
+        {
+            get
+            {
+                Bass.ChannelGetAttribute(Handle, ChannelAttribute.MidiVoicesActive, out float ret);
+                return (int)ret;
+            }
+        }
+
         public void Dispose()
         {
             Dispose(true);

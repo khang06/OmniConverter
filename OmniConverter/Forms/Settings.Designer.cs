@@ -1,4 +1,6 @@
-﻿namespace OmniConverter
+﻿using System;
+
+namespace OmniConverter
 {
     partial class Settings
     {
@@ -194,7 +196,7 @@
             // 
             MaxVoices.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
             MaxVoices.Location = new System.Drawing.Point(384, 6);
-            MaxVoices.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
+            MaxVoices.Maximum = new decimal(new int[] { Int32.MaxValue, 0, 0, 0 });
             MaxVoices.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             MaxVoices.Name = "MaxVoices";
             MaxVoices.Size = new System.Drawing.Size(64, 23);
